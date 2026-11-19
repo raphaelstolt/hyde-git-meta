@@ -1,0 +1,72 @@
+{
+    "name": "stolt/hyde-git-meta",
+    "description": "Git commit metadata for HydePHP pages and posts at build time.",
+    "type": "library",
+    "keywords": [
+        "hydephp",
+        "hyde",
+        "git",
+        "git-meta",
+        "commit",
+        "hydephp-extension"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Raphael Stolt",
+            "email": "raphael.stolt@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "hyde/framework": "^2.0.3",
+        "symfony/process": "^6.4|^7.0"
+    },
+    "require-dev": {
+        "carthage-software/mago": "^1.60.2",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "HydeGitMeta\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "HydeGitMeta\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "HydeGitMeta\\GitMetaServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": [
+            "./vendor/bin/phpunit"
+        ],
+        "lint": "mago lint",
+        "analyze": "mago analyze",
+        "fmt": "mago fmt src tests/Unit tests/Integration config",
+        "analyse": "phpstan analyse --no-progress",
+        "format:check": "mago format --check src tests/Unit tests/Integration config",
+        "check": [
+            "@lint",
+            "@analyze",
+            "@analyse",
+            "@format:check",
+            "@test"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "preferred-install": "dist",
+        "optimize-autoloader": true,
+        "platform": {
+            "php": "8.2.0"
+        }
+    }
+}
