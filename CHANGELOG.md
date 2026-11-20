@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+### Fixed
+
+- `findRepositoryRoot()` now resolves absolute paths before walking up the directory tree, fixing metadata resolution when the Hyde project lives in a subdirectory of the Git repository.
+
 ## [0.9.0] - 2026-11-20
 
 ### Added

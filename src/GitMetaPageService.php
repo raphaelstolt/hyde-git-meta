@@ -62,15 +62,17 @@ final class GitMetaPageService
         }
 
         $sourcePath = $page->getSourcePath();
-        $repositoryRoot = $this->findRepositoryRoot($sourcePath);
+        $resolved = $this->findRepositoryRoot($sourcePath);
 
-        if ($repositoryRoot === null) {
+        if ($resolved === null) {
             $this->pageCache[$page] = null;
             return null;
         }
 
+        [$repositoryRoot, $absoluteFilePath] = $resolved;
+
         // Calculate relative path from repository root to source file
-        $relativePath = $this->relativePath($repositoryRoot, $sourcePath);
+        $relativePath = $this->relativePath($repositoryRoot, $absoluteFilePath);
 
         if ($relativePath === null) {
             $this->pageCache[$page] = null;
@@ -129,15 +131,26 @@ final class GitMetaPageService
 
     /**
      * Try to find the Git repository root by walking up from the given path.
+     *
+     * Returns null if no Git repository is found, or an array containing
+     * [repositoryRoot, absoluteFilePath] if successful.
+     *
+     * @return array{string, string}|null
      */
-    private function findRepositoryRoot(string $filePath): ?string
+    private function findRepositoryRoot(string $filePath): ?array
     {
-        $directory = is_file($filePath) ? dirname($filePath) : $filePath;
+        $absolutePath = $this->resolveAbsolutePath($filePath);
+
+        if ($absolutePath === null) {
+            return null;
+        }
+
+        $directory = is_file($absolutePath) ? dirname($absolutePath) : $absolutePath;
         $current = $directory;
 
         while (true) {
             if (is_dir($current . '/.git')) {
-                return $current;
+                return [$current, $absolutePath];
             }
 
             $parent = dirname($current);
@@ -149,6 +162,25 @@ final class GitMetaPageService
 
             $current = $parent;
         }
+    }
+
+    /**
+     * Convert a file path to an absolute path.
+     *
+     * Handles both absolute paths and relative paths (resolved against the working directory).
+     * This prevents dirname('.') === '.' from stopping the walk early when the Hyde project
+     * lives in a subdirectory of the Git repository.
+     */
+    private function resolveAbsolutePath(string $filePath): ?string
+    {
+        if (file_exists($filePath)) {
+            $resolved = realpath($filePath);
+            return $resolved === false ? null : $resolved;
+        }
+
+        // Relative path from the Hyde project root; resolve against working directory
+        $resolved = realpath(getcwd() . DIRECTORY_SEPARATOR . $filePath);
+        return $resolved === false ? null : $resolved;
     }
 
     /**
